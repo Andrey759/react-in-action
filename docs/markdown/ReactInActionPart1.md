@@ -98,7 +98,20 @@ root.render(element);
 
 Создать компонент `Post`, который принимает данные через `props` и валидирует их через `PropTypes`.
 
-### Шаг 1. Создаём компонент
+### Шаг 1. Устанавливаем prop-types
+
+Пакет `prop-types` не входит в React начиная с версии 15.5 и поставляется отдельно. Установи его:
+
+```bash
+npm install prop-types
+```
+
+> **Для TypeScript-проектов** дополнительно установи типы:
+> ```bash
+> npm install --save-dev @types/prop-types
+> ```
+
+### Шаг 2. Создаём компонент
 
 ```javascript
 import React, { Component } from 'react';
@@ -1142,6 +1155,12 @@ createNewPost(post) {
 
 ### Валидация и санитизация
 
+Для фильтрации нецензурной лексики установи пакет `bad-words`:
+
+```bash
+npm install bad-words
+```
+
 ```jsx
 import Filter from 'bad-words';
 
@@ -1312,7 +1331,11 @@ export default class DisplayMap extends Component {
 
 ### Шаг 2. Компонент LocationTypeAhead
 
-Компонент для поиска локаций с использованием Mapbox API и браузерного Geolocation:
+Компонент для поиска локаций с использованием Mapbox API и браузерного Geolocation. Установи пакет `mapbox`:
+
+```bash
+npm install mapbox
+```
 
 ```jsx
 import React, { Component } from 'react';
