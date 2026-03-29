@@ -2,6 +2,8 @@
 
 > Практическое руководство по книге «React In Action» (Thomas M.T.)
 > Философия: учимся делая. Минимум теории — максимум кода.
+>
+> **Адаптировано для React 19.** Используется `createRoot` из `react-dom/client` вместо устаревшего `render` из `react-dom`. Удалённые lifecycle-методы (`componentWillMount`, `componentWillReceiveProps`, `componentWillUpdate`) заменены на современные аналоги.
 
 ---
 
@@ -40,9 +42,9 @@
 **index.js:**
 ```javascript
 import React from 'react';
-import { render } from 'react-dom';
+import { createRoot } from 'react-dom/client';
 
-const node = document.getElementById('root');
+const root = createRoot(document.getElementById('root'));
 ```
 
 ### Шаг 2. Создаём React-элементы
@@ -61,11 +63,11 @@ React.createElement(тип, свойства, ...дети)
 
 ```javascript
 import React from 'react';
-import { render } from 'react-dom';
+import { createRoot } from 'react-dom/client';
 
-const node = document.getElementById('root');
+const root = createRoot(document.getElementById('root'));
 
-const root = React.createElement(
+const element = React.createElement(
   'div', {},
   React.createElement('h1', {}, 'Hello, world!',
     React.createElement('a', { href: 'mailto:test@example.com' },
@@ -75,7 +77,7 @@ const root = React.createElement(
   )
 );
 
-render(root, node);
+root.render(element);
 ```
 
 Открой страницу — ты увидишь заголовок и ссылку.
@@ -83,8 +85,10 @@ render(root, node);
 ### Что произошло
 
 - `React.createElement` создаёт **виртуальные** элементы (лёгкие объекты в памяти).
-- `render` берёт их и вставляет в **настоящий** DOM.
+- `createRoot` создаёт корень React-приложения, а `root.render()` вставляет элементы в **настоящий** DOM.
 - React строит дерево рекурсивно: проходит по каждому ребёнку вглубь, пока не дойдёт до текста или пустого узла.
+
+> **Примечание (React 19):** раньше использовалась функция `render()` из `react-dom`, но начиная с React 18 она заменена на `createRoot()` из `react-dom/client`. Старый API `render()` удалён в React 19.
 
 ---
 
@@ -98,10 +102,10 @@ render(root, node);
 
 ```javascript
 import React, { Component } from 'react';
-import { render } from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import PropTypes from 'prop-types';
 
-const node = document.getElementById('root');
+const root = createRoot(document.getElementById('root'));
 
 class Post extends Component {
   render() {
@@ -134,7 +138,7 @@ const App = React.createElement(Post, {
   user: 'mark',
 });
 
-render(App, node);
+root.render(App);
 ```
 
 Результат: на экране появится текст «mark said: This is a post!».
@@ -214,7 +218,7 @@ const App = React.createElement(
   })
 );
 
-render(App, node);
+root.render(App);
 ```
 
 ### Что здесь важно
@@ -391,12 +395,11 @@ class CommentBox extends Component {
   }
 }
 
-render(
+root.render(
   React.createElement(CommentBox, {
     comments: data.comments,
     post: data.post,
-  }),
-  node
+  })
 );
 ```
 
@@ -417,7 +420,7 @@ render(
 
 Переписать всё на JSX — привычный HTML-подобный синтаксис внутри JavaScript.
 
-JSX — это **не HTML**. Это синтаксический сахар, который Babel преобразует в вызовы `React.createElement`.
+JSX — это **не HTML**. Это синтаксический сахар для создания React-элементов. Раньше Babel преобразовывал JSX в вызовы `React.createElement`, но начиная с React 17 используется новый **JSX Transform** — компилятор автоматически импортирует нужные функции из `react/jsx-runtime`, и вам не нужно явно импортировать `React` только ради JSX.
 
 ### Пример: было → стало
 
@@ -519,11 +522,12 @@ class CommentBox extends Component {
   }
 }
 
-render(
-  <CommentBox comments={data.comments} post={data.post} />,
-  node
+root.render(
+  <CommentBox comments={data.comments} post={data.post} />
 );
 ```
+
+> **Примечание (React 17+):** благодаря новому JSX Transform, вам больше не нужно писать `import React from 'react'` только для использования JSX. Компилятор (Babel, Vite, и т.д.) автоматически добавит нужный импорт. Однако если вы используете `React.Component`, `React.createElement` или другие API React напрямую — импорт по-прежнему нужен.
 
 ### Ключевые правила JSX
 
@@ -561,7 +565,7 @@ this.setState((prevState, props) => ({
 
 ```jsx
 import React from 'react';
-import { render } from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import PropTypes from 'prop-types';
 
 class Counter extends React.Component {
@@ -595,7 +599,7 @@ class Counter extends React.Component {
   }
 }
 
-render(<Counter incrementBy={1} />, document.getElementById('root'));
+createRoot(document.getElementById('root')).render(<Counter incrementBy={1} />);
 ```
 
 ### Подводный камень: shallow merge
@@ -690,6 +694,8 @@ const Greeting = (props) => <div>Hello {props.for}!</div>;
 - Компонент не использует lifecycle-методы.
 - Это делает код проще, короче и потенциально быстрее.
 
+> **Современный React (16.8+):** с появлением **хуков** (`useState`, `useEffect`, `useRef` и т.д.) функциональные компоненты стали основным способом написания React-кода. Хуки позволяют использовать state, побочные эффекты и другие возможности React без классов. В новых проектах рекомендуется использовать функциональные компоненты с хуками вместо компонентов-классов.
+
 ---
 
 ## 9. Жизненный цикл компонента
@@ -702,7 +708,7 @@ const Greeting = (props) => <div>Hello {props.for}!</div>;
 
 ```jsx
 import React, { Component } from 'react';
-import { render } from 'react-dom';
+import { createRoot } from 'react-dom/client';
 
 class ChildComponent extends Component {
   constructor(props) {
@@ -711,16 +717,13 @@ class ChildComponent extends Component {
     this.state = { name: 'Mark' };
   }
 
-  componentWillMount() {
-    console.log('Child: componentWillMount');
+  static getDerivedStateFromProps(props, state) {
+    console.log('Child: getDerivedStateFromProps', props, state);
+    return null;
   }
 
   componentDidMount() {
     console.log('Child: componentDidMount');
-  }
-
-  componentWillReceiveProps(nextProps) {
-    console.log('Child: componentWillReceiveProps', nextProps);
   }
 
   shouldComponentUpdate(nextProps, nextState) {
@@ -728,11 +731,12 @@ class ChildComponent extends Component {
     return true;
   }
 
-  componentWillUpdate(nextProps, nextState) {
-    console.log('Child: componentWillUpdate', nextProps, nextState);
+  getSnapshotBeforeUpdate(prevProps, prevState) {
+    console.log('Child: getSnapshotBeforeUpdate', prevProps, prevState);
+    return null;
   }
 
-  componentDidUpdate(prevProps, prevState) {
+  componentDidUpdate(prevProps, prevState, snapshot) {
     console.log('Child: componentDidUpdate', prevProps, prevState);
   }
 
@@ -752,10 +756,6 @@ class ParentComponent extends Component {
     console.log('Parent: constructor');
     this.state = { text: '' };
     this.onInputChange = this.onInputChange.bind(this);
-  }
-
-  componentWillMount() {
-    console.log('Parent: componentWillMount');
   }
 
   componentDidMount() {
@@ -782,7 +782,7 @@ class ParentComponent extends Component {
   }
 }
 
-render(<ParentComponent />, document.getElementById('root'));
+createRoot(document.getElementById('root')).render(<ParentComponent />);
 ```
 
 ### Открой консоль и наблюдай
@@ -790,10 +790,9 @@ render(<ParentComponent />, document.getElementById('root'));
 **При загрузке страницы:**
 ```
 Parent: constructor
-Parent: componentWillMount
 Parent: render
 Child: constructor
-Child: componentWillMount
+Child: getDerivedStateFromProps
 Child: render
 Child: componentDidMount    ← ребёнок монтируется первым!
 Parent: componentDidMount
@@ -802,25 +801,26 @@ Parent: componentDidMount
 **При вводе текста:**
 ```
 Parent: render
-Child: componentWillReceiveProps {name: "M"}
+Child: getDerivedStateFromProps
 Child: shouldComponentUpdate
-Child: componentWillUpdate
 Child: render
+Child: getSnapshotBeforeUpdate
 Child: componentDidUpdate
 ```
 
-### Шпаргалка по lifecycle-методам
+### Шпаргалка по lifecycle-методам (React 19)
+
+> **Удалены в React 19:** `componentWillMount`, `componentWillReceiveProps`, `componentWillUpdate`. Если они нужны при миграции старого кода, используйте префикс `UNSAFE_` (например, `UNSAFE_componentWillMount`), но лучше перейти на современные аналоги.
 
 | Метод | Когда вызывается | Можно ли setState |
 |-------|-----------------|-------------------|
 | `constructor` | Создание компонента | Только `this.state = ...` |
-| `componentWillMount` | Перед первым рендером | Да (без перерисовки) |
+| `static getDerivedStateFromProps(props, state)` | Перед каждым рендером (mounting + updating) | Возвращает объект для обновления state или `null` |
 | `render` | Создание виртуального DOM | **Нет!** |
 | `componentDidMount` | Компонент вставлен в DOM | Да |
-| `componentWillReceiveProps(nextProps)` | Получение новых props | Да |
 | `shouldComponentUpdate(nextProps, nextState)` | Перед обновлением | Нет |
-| `componentWillUpdate(nextProps, nextState)` | Подготовка к обновлению | Нет |
-| `componentDidUpdate(prevProps, prevState)` | После обновления DOM | Да |
+| `getSnapshotBeforeUpdate(prevProps, prevState)` | Перед применением изменений в DOM | Нет (возвращает значение → передаётся в `componentDidUpdate`) |
+| `componentDidUpdate(prevProps, prevState, snapshot)` | После обновления DOM | Да |
 | `componentWillUnmount` | Перед удалением из DOM | Нет |
 | `componentDidCatch(error, info)` | Ошибка в дочерних компонентах | Да |
 
@@ -829,6 +829,8 @@ Child: componentDidUpdate
 - **Загрузка данных с сервера** → `componentDidMount`
 - **Подписка на события / таймеры** → `componentDidMount`
 - **Отписка / очистка** → `componentWillUnmount`
+- **Вычисление state из props** → `static getDerivedStateFromProps`
+- **Чтение DOM перед обновлением** (например, позиция скролла) → `getSnapshotBeforeUpdate`
 - **Оптимизация** → `shouldComponentUpdate` (возвращай `false`, чтобы пропустить ненужную перерисовку)
 
 ### Обработка ошибок: componentDidCatch
@@ -882,16 +884,16 @@ npm run dev
 
 ```jsx
 import React from 'react';
-import { render } from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import App from './app';
 
-render(<App />, document.getElementById('app'));
+createRoot(document.getElementById('app')).render(<App />);
 ```
 
 ### Шаг 2. Компонент App (src/app.js)
 
 ```jsx
-import React, { Component } from 'react';
+import { Component } from 'react';
 import PropTypes from 'prop-types';
 import parseLinkHeader from 'parse-link-header';
 import orderBy from 'lodash/orderBy';
@@ -965,7 +967,7 @@ export default App;
 ### Шаг 3. Компонент Post (src/components/post/Post.js)
 
 ```jsx
-import React, { Component } from 'react';
+import { Component } from 'react';
 import PropTypes from 'prop-types';
 import * as API from '../../shared/http';
 import Content from './Content';
@@ -1230,13 +1232,13 @@ export default class DisplayMap extends Component {
     }
   }
 
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.location) {
-      const locationsAreEqual = Object.keys(nextProps.location).every(
-        (k) => nextProps.location[k] === this.props.location[k]
+  componentDidUpdate(prevProps) {
+    if (this.props.location) {
+      const locationsAreEqual = Object.keys(this.props.location).every(
+        (k) => this.props.location[k] === prevProps.location[k]
       );
       if (!locationsAreEqual) {
-        this.updateMapPosition(nextProps.location);
+        this.updateMapPosition(this.props.location);
       }
     }
   }
@@ -1305,7 +1307,7 @@ export default class DisplayMap extends Component {
 
 **Паттерн интеграции со сторонними библиотеками:**
 - `componentDidMount` → инициализация библиотеки
-- `componentWillReceiveProps` / `componentDidUpdate` → обновление при новых данных
+- `componentDidUpdate` → обновление при новых данных (сравнивайте `prevProps` с `this.props`)
 - `componentWillUnmount` → очистка (удаление обработчиков, destroy)
 
 ### Шаг 2. Компонент LocationTypeAhead
@@ -1524,8 +1526,8 @@ import DisplayMap from '../map/DisplayMap';
 | **Компонент** | Независимый блок UI. Класс с `render()` или функция. |
 | **Props** | Входные данные (read-only). Передаются от родителя. |
 | **State** | Внутренние изменяемые данные. Только через `setState`. |
-| **JSX** | HTML-подобный синтаксис → `React.createElement`. |
-| **Lifecycle** | Методы-хуки: mounting → updating → unmounting. |
+| **JSX** | HTML-подобный синтаксис. Компилятор автоматически преобразует в вызовы React (JSX Transform). |
+| **Lifecycle** | Методы класса: mounting → updating → unmounting. В React 19 удалены `componentWill*` методы. |
 | **Ref** | Прямой доступ к DOM-элементу. Для сторонних библиотек. |
 | **Controlled** | Значение элемента формы контролируется через state. |
 | **Children** | Вложенные элементы доступны через `this.props.children`. |
